@@ -1562,12 +1562,12 @@ char* make_web_time(const time_t rawtime)
 const std::string base32RFC4648 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=";
 bool base32_decode(const std::string &input, std::string &output)
 {
-	if ((input.size() % 8) != 0 || input.size() > 256)
+	if ((input.size() % 8) != 0)
 		return false;
 
-	unsigned char outBuff[5];
-	unsigned char outTotal[161];		// 256/8 *5 plus 1
-	memset(outTotal, 0x00, sizeof(unsigned char) * 161);
+	std::vector<uint8_t> outTotal;
+	std::vector<char> outBuff;
+	outBuff.reserve(5);
 
 	for(uint16_t j = 0; j < (input.size() / 8); j++)
 	{
@@ -1595,13 +1595,16 @@ bool base32_decode(const std::string &input, std::string &output)
 			}
 		}
 		// output 5 bytes
-		for(int x = 4; x >= 0; x--)
+		for(int8_t x = 4; x >= 0; x--)
 		{
 			outBuff[4 - x] = (unsigned char)(buffer >> (x * 8));
 		}
-		memmove(&outTotal[j * 5], &outBuff[0], sizeof(unsigned char) * 5);
+		for (uint8_t y = 0; y <= 4; y++)
+		{
+			outTotal.push_back(outBuff[y]);
+		}
 	}
 
-	output = std_format("%s", outTotal);
+	output.assign(std::string(outTotal.begin(), outTotal.end()));
 	return true;
 }
