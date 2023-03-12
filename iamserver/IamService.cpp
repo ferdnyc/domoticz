@@ -70,6 +70,7 @@ namespace http
 								{	// POST request, so maybe we have the data from the Login form
 									std::string sConsent = request::findValue(&req, "consent");
 									std::string sPWD = request::findValue(&req, "psw");
+									std::string sTOTP = request::findValue(&req, "totp");
 									Username = request::findValue(&req, "uname");
 									iUser = FindUser(Username.c_str());
 									bAuthenticated = (iUser > 0 ? (m_users[iUser].Password == GenerateMD5Hash(sPWD)) : false);
@@ -81,6 +82,38 @@ namespace http
 											_log.Debug(DEBUG_AUTH, "OAuth2 Auth Code: Validating User (%s) failed (%d)!", Username.c_str(), iUser);
 											PresentOauth2LoginDialog(rep, m_users[iClient].Username, "Invalid Credentials!");
 											return;
+										}
+										error = "User credentials do not match!";
+									}
+									else
+									{
+										// User/pass matches.. now check TOTP if required
+										if (m_iamsettings.has_2fatotp())
+										{
+											std::string sTotpKey = "";
+											bAuthenticated = false;
+											if(base32_decode(m_iamsettings.totpsecret, sTotpKey))
+											{
+												if (VerifySHA1TOTP(sTOTP, sTotpKey))
+												{
+													bAuthenticated = true;
+												}
+												else
+												{
+													m_failcount++;
+													if (m_failcount < 3)
+													{
+														_log.Debug(DEBUG_AUTH, "OAuth2 Auth Code: Validating Time-based On-Time Passcode for User (%s) failed (%s)!", Username.c_str(), sTOTP.c_str());
+														PresentOauth2LoginDialog(rep, m_users[iClient].Username, "Invalid TOTP code!");
+														return;
+													}
+													error = "TOTP Verification for a user has failed!";
+												}
+											}
+											else
+											{
+												error = "TOTP key is not valid base32 encoded!";
+											}
 										}
 									}
 								}
@@ -506,25 +539,23 @@ namespace http
 
         void CWebServer::PresentOauth2LoginDialog(reply &rep, const std::string sApp, const std::string sError)
         {
+			std::string sTOTP = "disabled";
+			if (m_iamsettings.has_2fatotp())
+			{
+				sTOTP = "required";
+			}
+
             rep = reply::stock_reply(reply::ok);
 
-            //std::string file_location = szWWWFolder + m_iamsettings.login_page;
-            //_log.Debug(DEBUG_AUTH, "Attempting to load IAM login page (%s)", file_location.c_str());
-            //if (reply::set_content_from_file(&rep, file_location))
             reply::set_content(&rep, m_iamsettings.getAuthPageContent());
             {
                 size_t pos = rep.content.find("###REPLACE_APP###");
                 rep.content.replace(pos,17,sApp);
                 pos = rep.content.find("###REPLACE_ERROR###");
                 rep.content.replace(pos,19,sError);
+                pos = rep.content.find("###REPLACE_2FATOTP###");
+                rep.content.replace(pos,21,sTOTP);
             }
-            /*
-            else
-            {
-                reply::set_content(&rep, "Failed to load IAM Login page!");
-                rep.status = reply::status_type::not_implemented;
-            }
-            */
             if (!sError.empty())
                 rep.status = reply::status_type::unauthorized;
             reply::add_header(&rep, "Content-Length", std::to_string(rep.content.size()));
@@ -568,6 +599,46 @@ namespace http
             if	(!refreshsession.id.empty())
                 RemoveSession(refreshsession.id);
         }
+
+		bool CWebServer::VerifySHA1TOTP(const std::string code, const std::string key)
+		{
+			/*
+			 * Time-based One-Time Password algorithm verification method
+			 * Using SHA1 and 30 seconds time-intervals (RFC6238)
+			 * Also checks big/litte-endian to ensure proper functioning on different systems
+			 * Should work with (mobile) Authenticators like FreeOTP or Google's Authenticator
+			 */
+			if (code.size() != 6 || key.size() != 20)
+				return false;
+
+			unsigned long long intCounter = time(nullptr)/30;
+			unsigned long long endianness = 0xdeadbeef;
+			if ((*(const uint8_t *)&endianness) == 0xef)
+			{
+				intCounter = ((intCounter & 0x00000000ffffffff) << 32) | ((intCounter & 0xffffffff00000000) >> 32);
+				intCounter = ((intCounter & 0x0000ffff0000ffff) << 16) | ((intCounter & 0xffff0000ffff0000) >> 16);
+				intCounter = ((intCounter & 0x00ff00ff00ff00ff) <<  8) | ((intCounter & 0xff00ff00ff00ff00) >>  8);
+			};
+			char md[20];
+			unsigned int mdLen;
+			HMAC(EVP_sha1(), key.c_str(), key.size(), (const unsigned char*)&intCounter, sizeof(intCounter), (unsigned char*)&md, &mdLen);
+			int offset = md[19] & 0x0f;
+			int bin_code = (md[offset] & 0x7f) << 24
+				| (md[offset+1] & 0xff) << 16
+				| (md[offset+2] & 0xff) << 8
+				| (md[offset+3] & 0xff);
+			bin_code = bin_code % 1000000;
+			char calcCode[7];
+			snprintf((char*)&calcCode, 7,"%06d", bin_code);
+			std::string sCalcCode(calcCode);
+
+			_log.Debug(DEBUG_AUTH,"VerifySHA1TOTP: Code given .%s. -> calculated .%s. (%s)", code.c_str(), sCalcCode.c_str(), sha256hex(key).c_str());
+
+			if (sCalcCode.compare(code) == 0)
+				return true;
+
+			return false;
+		}
 
 	} // namespace server
 } // namespace http
