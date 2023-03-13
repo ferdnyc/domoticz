@@ -1062,7 +1062,12 @@ int main(int argc, char**argv)
 			}
 			std::string szroot = cmdLine.GetSafeArgument("-webroot", 0, "");
 			if (!szroot.empty())
+			{
 				szWebRoot = szroot;
+				//make sure we do not end with a slash
+				if (szWebRoot.at(szWebRoot.size() - 1) == '/')
+					szWebRoot = szWebRoot.substr(0, szWebRoot.size() - 1);
+			}
 		}
 		if (cmdLine.HasSwitch("-noupdates"))
 		{
