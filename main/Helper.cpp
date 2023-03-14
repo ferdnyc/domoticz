@@ -1566,8 +1566,6 @@ bool base32_decode(const std::string &input, std::string &output)
 		return false;
 
 	std::vector<uint8_t> outTotal;
-	std::vector<char> outBuff;
-	outBuff.reserve(5);
 
 	for(uint16_t j = 0; j < (input.size() / 8); j++)
 	{
@@ -1594,14 +1592,9 @@ bool base32_decode(const std::string &input, std::string &output)
 				buffer = buffer | base32RFC4648.find(input[(j*8) + i]);
 			}
 		}
-		// output 5 bytes
 		for(int8_t x = 4; x >= 0; x--)
 		{
-			outBuff[4 - x] = (unsigned char)(buffer >> (x * 8));
-		}
-		for (uint8_t y = 0; y <= 4; y++)
-		{
-			outTotal.push_back(outBuff[y]);
+			outTotal.push_back((unsigned char)(buffer >> (x * 8)));
 		}
 	}
 
