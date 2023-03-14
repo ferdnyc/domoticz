@@ -507,6 +507,9 @@
     <Filter Include="Plugin Framework">
       <UniqueIdentifier>{343e8e43-c7ac-4839-a9a2-6b5f78f95b6d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Webserver\iamserver">
+      <UniqueIdentifier>{02851903-f63b-4bcf-a530-89f8bc5cc878}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CMakeLists.txt">
@@ -2241,6 +2244,9 @@
     <ClInclude Include="..\hardware\EnOceanRawValue.h">
       <Filter>Devices\EnOcean</Filter>
     </ClInclude>
+    <ClInclude Include="..\iamserver\iam_settings.hpp">
+      <Filter>Webserver\iamserver</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\webserver\Base64.cpp">
@@ -3001,6 +3007,9 @@
     </ClCompile>
     <ClCompile Include="..\hardware\TeleinfoTCP.cpp">
       <Filter>Devices\Teleinfo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\iamserver\IamService.cpp">
+      <Filter>Webserver\iamserver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
