@@ -78,7 +78,7 @@ namespace http
 									std::string sTOTP = request::findValue(&req, "totp");
 									Username = request::findValue(&req, "uname");
 									iUser = FindUser(Username.c_str());
-									bAuthenticated = (iUser > 0 ? (m_users[iUser].Password == GenerateMD5Hash(sPWD)) : false);
+									bAuthenticated = (iUser != -1 ? (m_users[iUser].Password == GenerateMD5Hash(sPWD)) : false);
 									if (!bAuthenticated)
 									{
 										m_failcount++;
