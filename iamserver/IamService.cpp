@@ -11,7 +11,12 @@
  *  
 */
 
+#include "stdafx.h"
+#include "../httpclient/UrlEncode.h"
+#include "../main/Logger.h"
+#include "../main/SQLHelper.h"
 #include "../main/WebServer.h"
+#include "../webserver/Base64.h"
 
 namespace http
 {

@@ -341,6 +341,7 @@ hardware/plugins/PluginProtocols.cpp
 hardware/plugins/PluginTransports.cpp
 hardware/plugins/PythonObjects.cpp
 hardware/plugins/PythonObjectEx.cpp
+iamserver/IamService.cpp
 notifications/NotificationBase.cpp
 notifications/NotificationBrowser.cpp
 notifications/NotificationEmail.cpp
