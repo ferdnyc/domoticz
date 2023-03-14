@@ -719,7 +719,12 @@
     <ClInclude Include="..\hardware\ZWaveBase.h" />
     <ClInclude Include="..\hardware\ZWaveCommands.h" />
     <ClInclude Include="..\httpclient\HTTPClient.h" />
-    <ClInclude Include="..\iamserver\iam_settings.hpp" />
+    <ClInclude Include="..\iamserver\iam_settings.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\main\appversion.h" />
     <ClInclude Include="..\hardware\ASyncSerial.h" />
     <ClInclude Include="..\main\BaroForecastCalculator.h" />
@@ -1027,7 +1032,12 @@
     <ClCompile Include="..\hardware\ZiBlueTCP.cpp" />
     <ClCompile Include="..\hardware\ZWaveBase.cpp" />
     <ClCompile Include="..\httpclient\HTTPClient.cpp" />
-    <ClCompile Include="..\iamserver\IamService.cpp" />
+    <ClCompile Include="..\iamserver\IamService.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\main\BaroForecastCalculator.cpp" />
     <ClCompile Include="..\main\Camera.cpp" />
     <ClCompile Include="..\hardware\Rego6XXSerial.cpp" />
